@@ -10,64 +10,61 @@ import (
 func Marshal(x interface{}) string {
 	v := reflect.ValueOf(x)
 	vi := reflect.Indirect(v)
-	c := make(chan string)
 	var t string = ""
+	c := make(chan string)
 	if compareBytes(vi.Type().String()[:4], "map[") || compareBytes(vi.Type().String()[:1], "[") {
 		go func() {
 			c <- marshalDeep(vi, vi.Type().String())
 		}()
 	} else {
-		go func() {
-			var Tt string = ""
-			Tt += "{"
-			for i := 0; i != vi.NumField(); i++ {
-				osi := vi.Field(i).Type().String()
-				switch osi {
-				case "string":
-					Tt += "\"" + vi.Type().Field(i).Name + "\":\"" + strings.Replace(fmt.Sprint(vi.Field(i).Interface()), "\"", "\\\"", -1) + "\","
-				case "bool", "int", "uint8":
-					Tt += "\"" + vi.Type().Field(i).Name + "\":\"" + fmt.Sprint(vi.Field(i).Interface()) + "\","
-				default:
-					if compareBytes(osi[:4], "map[") {
-						Tt += "\"" + vi.Type().Field(i).Name + "\":{"
-						mapTmpKeys := reflect.ValueOf(vi.Field(i).Interface()).MapKeys()
-						for _, key := range mapTmpKeys {
-							switch reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Type().String() {
-							case "int", "uint8", "bool":
-								Tt += "\"" + fmt.Sprint(key.Interface()) + "\":" + fmt.Sprint(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()) + ","
-							case "string":
-								Tt += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + fmt.Sprint(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()) + "\","
-							default:
-								Tt += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()), reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Type().String()) + ","
-							}
+		t = "{"
+		for i := 0; i != vi.NumField(); i++ {
+			osi := vi.Field(i).Type().String()
+			switch osi {
+			case "string":
+				t += "\"" + vi.Type().Field(i).Name + "\":\"" + strings.Replace(fmt.Sprint(vi.Field(i).Interface()), "\"", "\\\"", -1) + "\","
+			case "bool", "int", "uint8":
+				t += "\"" + vi.Type().Field(i).Name + "\":\"" + fmt.Sprint(vi.Field(i).Interface()) + "\","
+			default:
+				if compareBytes(osi[:4], "map[") {
+					t += "\"" + vi.Type().Field(i).Name + "\":{"
+					mapTmpKeys := reflect.ValueOf(vi.Field(i).Interface()).MapKeys()
+					for _, key := range mapTmpKeys {
+						switch reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Type().String() {
+						case "int", "uint8", "bool":
+							t += "\"" + fmt.Sprint(key.Interface()) + "\":" + fmt.Sprint(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()) + ","
+						case "string":
+							t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + fmt.Sprint(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()) + "\","
+						default:
+							t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()), reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Type().String()) + ","
 						}
-						Tt = Tt[:len(Tt)-1]
-						Tt += "},"
-					} else if compareBytes(osi[:1], "[") {
-						Tt += "\"" + vi.Type().Field(i).Name + "\":["
-						for ia := 0; ia < reflect.ValueOf(vi.Field(i).Interface()).Len(); ia++ {
-							switch reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Type().String() {
-							case "int", "uint8", "bool":
-								Tt += fmt.Sprint(reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Interface()) + ","
-							case "string":
-								Tt += "\"" + fmt.Sprint(reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Interface()) + "\","
-							default:
-								Tt += marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Interface()), reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Type().String()) + ","
-							}
-						}
-						Tt = Tt[:len(Tt)-1]
-						Tt += "],"
-					} else {
-						Tt += Marshal(vi.Field(i).Interface())
 					}
+					t = t[:len(t)-1]
+					t += "},"
+				} else if compareBytes(osi[:1], "[") {
+					t += "\"" + vi.Type().Field(i).Name + "\":["
+					for ia := 0; ia < reflect.ValueOf(vi.Field(i).Interface()).Len(); ia++ {
+						switch reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Type().String() {
+						case "int", "uint8", "bool":
+							t += fmt.Sprint(reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Interface()) + ","
+						case "string":
+							t += "\"" + fmt.Sprint(reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Interface()) + "\","
+						default:
+							t += marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Interface()), reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Type().String()) + ","
+						}
+					}
+					t = t[:len(t)-1]
+					t += "],"
+				} else {
+					go func() {
+						c <- Marshal(vi.Field(i).Interface())
+					}()
 				}
 			}
-			Tt = Tt[:len(Tt)-1]
-			Tt += "}"
-			c <- Tt
-		}()
+		}
+		t = t[:len(t)-1]
+		t += "}"
 	}
-	fmt.Println("LT: " + t)
 	t += <-c
 	return t
 }
@@ -90,43 +87,41 @@ func compareBytes(sa string, sb string) bool {
 func marshalDeep(vi reflect.Value, bytedType string) string {
 	var t string = ""
 	c := make(chan string)
-	go func() {
-		var Tt string = ""
-		if compareBytes(bytedType[:4], "map[") {
+	if compareBytes(bytedType[:4], "map[") {
 
-			Tt += "{"
-			mapTmpKeys := reflect.ValueOf(vi.Interface()).MapKeys()
-			for _, key := range mapTmpKeys {
-				switch reflect.ValueOf(vi.Interface()).MapIndex(key).Type().String() {
-				case "int", "uint8", "bool":
-					Tt += "\"" + fmt.Sprint(key.Interface()) + "\":" + fmt.Sprint(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()) + ","
-				case "string":
-					Tt += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + fmt.Sprint(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()) + "\","
-				default:
-					Tt += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()), reflect.ValueOf(vi.Interface()).MapIndex(key).Type().String()) + ","
-				}
+		t += "{"
+		mapTmpKeys := reflect.ValueOf(vi.Interface()).MapKeys()
+		for _, key := range mapTmpKeys {
+			switch reflect.ValueOf(vi.Interface()).MapIndex(key).Type().String() {
+			case "int", "uint8", "bool":
+				t += "\"" + fmt.Sprint(key.Interface()) + "\":" + fmt.Sprint(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()) + ","
+			case "string":
+				t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + fmt.Sprint(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()) + "\","
+			default:
+				t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()), reflect.ValueOf(vi.Interface()).MapIndex(key).Type().String()) + ","
 			}
-			Tt = Tt[:len(Tt)-1]
-			Tt += "}"
-		} else if compareBytes(bytedType[:1], "[") {
-			Tt += "["
-			for ia := 0; ia < reflect.ValueOf(vi.Interface()).Len(); ia++ {
-				switch reflect.ValueOf(vi.Interface()).Index(ia).Type().String() {
-				case "int", "uint8", "bool":
-					Tt += fmt.Sprint(reflect.ValueOf(vi.Interface()).Index(ia).Interface()) + ","
-				case "string":
-					Tt += "\"" + fmt.Sprint(reflect.ValueOf(vi.Interface()).Index(ia).Interface()) + "\","
-				default:
-					Tt += marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Interface()).Index(ia).Interface()), reflect.ValueOf(vi.Interface()).Index(ia).Type().String()) + ","
-				}
-			}
-			Tt = Tt[:len(Tt)-1]
-			Tt += "]"
-		} else {
-			Tt += Marshal(vi.Interface())
 		}
-		c <- Tt
-	}()
+		t = t[:len(t)-1]
+		t += "}"
+	} else if compareBytes(bytedType[:1], "[") {
+		t += "["
+		for ia := 0; ia < reflect.ValueOf(vi.Interface()).Len(); ia++ {
+			switch reflect.ValueOf(vi.Interface()).Index(ia).Type().String() {
+			case "int", "uint8", "bool":
+				t += fmt.Sprint(reflect.ValueOf(vi.Interface()).Index(ia).Interface()) + ","
+			case "string":
+				t += "\"" + fmt.Sprint(reflect.ValueOf(vi.Interface()).Index(ia).Interface()) + "\","
+			default:
+				t += marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Interface()).Index(ia).Interface()), reflect.ValueOf(vi.Interface()).Index(ia).Type().String()) + ","
+			}
+		}
+		t = t[:len(t)-1]
+		t += "]"
+	} else {
+		go func() {
+			c <- Marshal(vi.Interface())
+		}()
+	}
 	t += <-c
 	return t
 }
