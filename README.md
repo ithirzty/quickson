@@ -24,6 +24,17 @@ myConvertedJson := quickson.Marshal(MyInterface)
 ## When not to use it?
 * If you have really complexe interfaces because it might be buggy with some conversions.
 
+## Less performance under load?
+Here is how to use concurrency with quickson:
+```golang
+result := ""
+c := make(chan string)
+			go func() {
+				c <- quickson.Marshal(MyInterface)
+			}()
+```
+result <- c
+
 ## I just want to test it
 Then install the package and run the following:
 ```golang
