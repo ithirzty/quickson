@@ -1,3 +1,11 @@
+package quickson
+
+import (
+	"fmt"
+	"reflect"
+	"strings"
+)
+
 func Marshall(x interface{}) string {
 	v := reflect.ValueOf(x)
 	vi := reflect.Indirect(v)
