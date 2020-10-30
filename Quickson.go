@@ -49,7 +49,7 @@ func Marshal(x interface{}) string {
 				t = t[:len(t)-1]
 				t += "],"
 			} else {
-				t += Marshal(vi.Field(i).Interface())
+				t += Marshal(vi.Field(i).Interface())+","
 			}
 		}
 	}
@@ -99,7 +99,7 @@ func marshalDeep(vi reflect.Value, bytedType string) string {
 		t = t[:len(t)-1]
 		t += "]"
 	} else {
-		t += Marshal(vi.Interface())
+		t += Marshal(vi.Interface()) + ","
 	}
 	return t
 }
