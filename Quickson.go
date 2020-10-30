@@ -1,18 +1,3 @@
-package quickson
-
-import (
-	"fmt"
-	"reflect"
-	"strings"
-)
-
-type testS struct {
-	Nom          string
-	Use          [][]bool
-	UsedChildren map[string]bool
-}
-
-// Marshall returns string of json, simply pass it the structure/interface to transform in JSON
 func Marshall(x interface{}) string {
 	v := reflect.ValueOf(x)
 	vi := reflect.Indirect(v)
@@ -22,7 +7,7 @@ func Marshall(x interface{}) string {
 		switch osi {
 		case "string":
 			t += "\"" + vi.Type().Field(i).Name + "\":\"" + strings.Replace(fmt.Sprint(vi.Field(i).Interface()), "\"", "\\\"", -1) + "\","
-		case "bool", "int":
+		case "bool", "int", "uint8":
 			t += "\"" + vi.Type().Field(i).Name + "\":\"" + fmt.Sprint(vi.Field(i).Interface()) + "\","
 		default:
 			if compareBytes(osi[:4], "map[") {
@@ -30,7 +15,7 @@ func Marshall(x interface{}) string {
 				mapTmpKeys := reflect.ValueOf(vi.Field(i).Interface()).MapKeys()
 				for _, key := range mapTmpKeys {
 					switch reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Type().String() {
-					case "int", "bool":
+					case "int", "uint8", "bool":
 						t += "\"" + fmt.Sprint(key.Interface()) + "\":" + fmt.Sprint(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()) + ","
 					case "string":
 						t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + fmt.Sprint(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()) + "\","
@@ -44,7 +29,7 @@ func Marshall(x interface{}) string {
 				t += "\"" + vi.Type().Field(i).Name + "\":["
 				for ia := 0; ia < reflect.ValueOf(vi.Field(i).Interface()).Len(); ia++ {
 					switch reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Type().String() {
-					case "int", "bool":
+					case "int", "uint8", "bool":
 						t += fmt.Sprint(reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Interface()) + ","
 					case "string":
 						t += "\"" + fmt.Sprint(reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Interface()) + "\","
@@ -81,7 +66,7 @@ func marshallDeep(vi reflect.Value, bytedType string) string {
 		mapTmpKeys := reflect.ValueOf(vi.Interface()).MapKeys()
 		for _, key := range mapTmpKeys {
 			switch reflect.ValueOf(vi.Interface()).MapIndex(key).Type().String() {
-			case "int", "bool":
+			case "int", "uint8", "bool":
 				t += "\"" + fmt.Sprint(key.Interface()) + "\":" + fmt.Sprint(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()) + ","
 			case "string":
 				t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + fmt.Sprint(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()) + "\","
@@ -95,7 +80,7 @@ func marshallDeep(vi reflect.Value, bytedType string) string {
 		t += "["
 		for ia := 0; ia < reflect.ValueOf(vi.Interface()).Len(); ia++ {
 			switch reflect.ValueOf(vi.Interface()).Index(ia).Type().String() {
-			case "int", "bool":
+			case "int", "uint8", "bool":
 				t += fmt.Sprint(reflect.ValueOf(vi.Interface()).Index(ia).Interface()) + ","
 			case "string":
 				t += "\"" + fmt.Sprint(reflect.ValueOf(vi.Interface()).Index(ia).Interface()) + "\","
