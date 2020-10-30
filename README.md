@@ -10,7 +10,6 @@ import(
 "github.com/ithirzty/quickson"
 )
 ```
-Then just 
 ## Why?
 * It is up to 3x as fast as the native one (encoding/json).
 * It is really easy to use: 
