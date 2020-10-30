@@ -8,14 +8,19 @@ import (
 
 //Marshal is used to convert a struct/interface into JSON. It outputs a string
 func Marshal(x interface{}) string {
+	c := make(chan string)
+	go func() {
+		c <- marshalWorker(x)
+	}()
+	return <-c
+}
+
+func marshalWorker(x interface{}) string {
 	v := reflect.ValueOf(x)
 	vi := reflect.Indirect(v)
 	var t string = ""
-	c := make(chan string)
 	if compareBytes(vi.Type().String()[:4], "map[") || compareBytes(vi.Type().String()[:1], "[") {
-		go func() {
-			c <- marshalDeep(vi, vi.Type().String())
-		}()
+		t += marshalDeep(vi, vi.Type().String())
 	} else {
 		t = "{"
 		for i := 0; i != vi.NumField(); i++ {
@@ -56,16 +61,13 @@ func Marshal(x interface{}) string {
 					t = t[:len(t)-1]
 					t += "],"
 				} else {
-					go func() {
-						c <- Marshal(vi.Field(i).Interface())
-					}()
+					t += Marshal(vi.Field(i).Interface())
 				}
 			}
 		}
 		t = t[:len(t)-1]
 		t += "}"
 	}
-	t += <-c
 	return t
 }
 
@@ -86,7 +88,6 @@ func compareBytes(sa string, sb string) bool {
 
 func marshalDeep(vi reflect.Value, bytedType string) string {
 	var t string = ""
-	c := make(chan string)
 	if compareBytes(bytedType[:4], "map[") {
 
 		t += "{"
@@ -118,11 +119,8 @@ func marshalDeep(vi reflect.Value, bytedType string) string {
 		t = t[:len(t)-1]
 		t += "]"
 	} else {
-		go func() {
-			c <- Marshal(vi.Interface())
-		}()
+		t += Marshal(vi.Interface())
 	}
-	t += <-c
 	return t
 }
 
