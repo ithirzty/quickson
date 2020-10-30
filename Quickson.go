@@ -10,11 +10,11 @@ import (
 func Marshal(x interface{}) string {
 	v := reflect.ValueOf(x)
 	vi := reflect.Indirect(v)
+	c := make(chan string)
 	var t string = ""
 	if compareBytes(vi.Type().String()[:4], "map[") || compareBytes(vi.Type().String()[:1], "[") {
 		go func() {
-			t += marshalDeep(vi, vi.Type().String())
-			fmt.Println("FT: " + t)
+			c <- marshalDeep(vi, vi.Type().String())
 		}()
 	} else {
 		go func() {
@@ -64,11 +64,11 @@ func Marshal(x interface{}) string {
 			}
 			Tt = Tt[:len(Tt)-1]
 			Tt += "}"
-			t += Tt
-			fmt.Println("FT: " + t)
+			c <- Tt
 		}()
 	}
 	fmt.Println("LT: " + t)
+	t += <-c
 	return t
 }
 
@@ -89,6 +89,7 @@ func compareBytes(sa string, sb string) bool {
 
 func marshalDeep(vi reflect.Value, bytedType string) string {
 	var t string = ""
+	c := make(chan string)
 	go func() {
 		var Tt string = ""
 		if compareBytes(bytedType[:4], "map[") {
@@ -124,8 +125,9 @@ func marshalDeep(vi reflect.Value, bytedType string) string {
 		} else {
 			Tt += Marshal(vi.Interface())
 		}
-		t += Tt
+		c <- Tt
 	}()
+	t += <-c
 	return t
 }
 
