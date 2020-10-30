@@ -32,7 +32,7 @@ func Marshal(x interface{}) string {
 						t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()), reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Type().String()) + ","
 					}
 				}
-				t = t[:1]
+				t = t[:len(t)-1]
 				t += "},"
 			} else if compareBytes(osi[:1], "[") {
 				t += "\"" + vi.Type().Field(i).Name + "\":["
@@ -46,14 +46,14 @@ func Marshal(x interface{}) string {
 						t += marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Interface()), reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Type().String()) + ","
 					}
 				}
-				t = t[:1]
+				t = t[:len(t)-1]
 				t += "],"
 			} else {
 				t += Marshal(vi.Field(i).Interface())
 			}
 		}
 	}
-	t = t[:1]
+	t = t[:len(t)-1]
 	return t + "}"
 }
 func compareBytes(sa string, sb string) bool {
@@ -82,7 +82,7 @@ func marshalDeep(vi reflect.Value, bytedType string) string {
 				t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()), reflect.ValueOf(vi.Interface()).MapIndex(key).Type().String()) + ","
 			}
 		}
-		t = t[:1]
+		t = t[:len(t)-1]
 		t += "}"
 	} else if compareBytes(bytedType[:1], "[") {
 		t += "["
@@ -96,7 +96,7 @@ func marshalDeep(vi reflect.Value, bytedType string) string {
 				t += marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Interface()).Index(ia).Interface()), reflect.ValueOf(vi.Interface()).Index(ia).Type().String()) + ","
 			}
 		}
-		t = t[:1]
+		t = t[:len(t)-1]
 		t += "]"
 	} else {
 		t += Marshal(vi.Interface())
