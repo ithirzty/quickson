@@ -18,3 +18,22 @@ myConvertedJson := quickson.Marshal(MyInterface)
 ```
 ## When not to use it?
 * If you have really complexe interfaces because it might be buggy with some conversions.
+
+## I just want to test it
+Then install the package and run the following:
+```golang
+package main
+import(
+"fmt"
+"github.com/ithirzty/quickson"
+)
+type testInterface struct {
+  TestField  string           //"This is a test."
+  TestPassed map[string]bool  //"My test": true
+}
+func main() {
+testVar := testInterface{"This is a test.", map[string]bool{"My test": true}}
+fmt.PrintF("This is our struct converted in JSON: %v", quickson.Marshal(testVar))
+
+}
+```
