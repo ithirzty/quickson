@@ -10,6 +10,11 @@ import(
 "github.com/ithirzty/quickson"
 )
 ```
+### How to update
+```bash
+go get -u github.com/ithirzty/quickson
+```
+
 ## Why?
 * It is up to 3x as fast as the native one (encoding/json).
 * It is really easy to use: 
