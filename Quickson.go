@@ -14,6 +14,7 @@ func Marshal(x interface{}) string {
 	if compareBytes(vi.Type().String()[:4], "map[") || compareBytes(vi.Type().String()[:1], "[") {
 		go func() {
 			t += marshalDeep(vi, vi.Type().String())
+			fmt.Println("FT: " + t)
 		}()
 	} else {
 		go func() {
@@ -64,8 +65,10 @@ func Marshal(x interface{}) string {
 			Tt = Tt[:len(Tt)-1]
 			Tt += "}"
 			t += Tt
+			fmt.Println("FT: " + t)
 		}()
 	}
+	fmt.Println("LT: " + t)
 	return t
 }
 
