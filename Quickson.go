@@ -54,7 +54,7 @@ func Marshal(x interface{}) string {
 								Tt += marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Interface()), reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Type().String()) + ","
 							}
 						}
-						Tt = Tt[:len(t)-1]
+						Tt = Tt[:len(Tt)-1]
 						Tt += "],"
 					} else {
 						Tt += Marshal(vi.Field(i).Interface())
