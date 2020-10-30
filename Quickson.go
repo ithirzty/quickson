@@ -99,7 +99,7 @@ func marshalDeep(vi reflect.Value, bytedType string) string {
 		t = t[:len(t)-1]
 		t += "]"
 	} else {
-		t += Marshal(vi.Interface()) + ","
+		t += Marshal(vi.Interface())
 	}
 	return t
 }
