@@ -16,7 +16,7 @@ go get -u github.com/ithirzty/quickson
 ```
 
 ## Why?
-* It is up to 3x as fast as the native one (encoding/json).
+* It is up to 3x as fast as the native one (encoding/json), generaly 2x faster.
 * It is really easy to use: 
 ```golang
 myConvertedJson := quickson.Marshal(MyInterface)
