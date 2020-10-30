@@ -32,8 +32,9 @@ c := make(chan string)
 			go func() {
 				c <- quickson.Marshal(MyInterface)
 			}()
-```
 result <- c
+```
+
 
 ## I just want to test it
 Then install the package and run the following:
