@@ -8,19 +8,11 @@ import (
 
 //Marshal is used to convert a struct/interface into JSON. It outputs a string
 func Marshal(x interface{}) string {
-	c := make(chan string)
-	go func() {
-		c <- marshalWorker(x)
-	}()
-	return <-c
-}
-
-func marshalWorker(x interface{}) string {
 	v := reflect.ValueOf(x)
 	vi := reflect.Indirect(v)
 	var t string = ""
 	if compareBytes(vi.Type().String()[:4], "map[") || compareBytes(vi.Type().String()[:1], "[") {
-		t += marshalDeep(vi, vi.Type().String())
+		t = marshalDeep(vi, vi.Type().String())
 	} else {
 		t = "{"
 		for i := 0; i != vi.NumField(); i++ {
