@@ -38,7 +38,7 @@ type testInterface struct {
 }
 func main() {
 testVar := testInterface{"This is a test.", map[string]bool{"My test": true}}
-fmt.PrintF("This is our struct converted in JSON: %v", quickson.Marshal(testVar))
-
+fmt.Printf("This is our struct converted in JSON: %v", quickson.Marshal(testVar))
+//should output {"TestField":"This is a test.","TestPassed":{"My test":true}}
 }
 ```
