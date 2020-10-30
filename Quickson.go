@@ -6,7 +6,8 @@ import (
 	"strings"
 )
 
-func Marshall(x interface{}) string {
+//Marshal is used to convert a struct/interface into JSON. It outputs a string
+func Marshal(x interface{}) string {
 	v := reflect.ValueOf(x)
 	vi := reflect.Indirect(v)
 	var t = "{"
@@ -28,10 +29,10 @@ func Marshall(x interface{}) string {
 					case "string":
 						t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + fmt.Sprint(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()) + "\","
 					default:
-						t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + marshallDeep(reflect.ValueOf(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()), reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Type().String()) + ","
+						t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()), reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Type().String()) + ","
 					}
 				}
-				t = strings.TrimSuffix(t, ",")
+				t = t[:1]
 				t += "},"
 			} else if compareBytes(osi[:1], "[") {
 				t += "\"" + vi.Type().Field(i).Name + "\":["
@@ -42,17 +43,17 @@ func Marshall(x interface{}) string {
 					case "string":
 						t += "\"" + fmt.Sprint(reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Interface()) + "\","
 					default:
-						t += marshallDeep(reflect.ValueOf(reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Interface()), reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Type().String()) + ","
+						t += marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Interface()), reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Type().String()) + ","
 					}
 				}
-				t = strings.TrimSuffix(t, ",")
+				t = t[:1]
 				t += "],"
 			} else {
-				t += Marshall(vi.Field(i).Interface())
+				t += Marshal(vi.Field(i).Interface())
 			}
 		}
 	}
-	t = strings.TrimSuffix(t, ",")
+	t = t[:1]
 	return t + "}"
 }
 func compareBytes(sa string, sb string) bool {
@@ -60,13 +61,12 @@ func compareBytes(sa string, sb string) bool {
 	b := []byte(sb)
 	for i, v := range a {
 		if v != b[i] {
-			fmt.Println(string(a) + " pas meme que " + string(b))
 			return false
 		}
 	}
 	return true
 }
-func marshallDeep(vi reflect.Value, bytedType string) string {
+func marshalDeep(vi reflect.Value, bytedType string) string {
 	var t string = ""
 	if compareBytes(bytedType[:4], "map[") {
 
@@ -79,10 +79,10 @@ func marshallDeep(vi reflect.Value, bytedType string) string {
 			case "string":
 				t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + fmt.Sprint(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()) + "\","
 			default:
-				t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + marshallDeep(reflect.ValueOf(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()), reflect.ValueOf(vi.Interface()).MapIndex(key).Type().String()) + ","
+				t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()), reflect.ValueOf(vi.Interface()).MapIndex(key).Type().String()) + ","
 			}
 		}
-		t = strings.TrimSuffix(t, ",")
+		t = t[:1]
 		t += "}"
 	} else if compareBytes(bytedType[:1], "[") {
 		t += "["
@@ -93,14 +93,13 @@ func marshallDeep(vi reflect.Value, bytedType string) string {
 			case "string":
 				t += "\"" + fmt.Sprint(reflect.ValueOf(vi.Interface()).Index(ia).Interface()) + "\","
 			default:
-				t += marshallDeep(reflect.ValueOf(reflect.ValueOf(vi.Interface()).Index(ia).Interface()), reflect.ValueOf(vi.Interface()).Index(ia).Type().String()) + ","
-				fmt.Println(t)
+				t += marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Interface()).Index(ia).Interface()), reflect.ValueOf(vi.Interface()).Index(ia).Type().String()) + ","
 			}
 		}
-		t = strings.TrimSuffix(t, ",")
+		t = t[:1]
 		t += "]"
 	} else {
-		t += Marshall(vi.Interface())
+		t += Marshal(vi.Interface())
 	}
 	return t
 }
