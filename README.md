@@ -17,10 +17,23 @@ go get -u github.com/ithirzty/quickson
 
 ## Why?
 * It is up to 3x as fast as the native one (encoding/json), generaly 2x faster.
-* It is really easy to use: 
+* It is really easy to use.
+
+# How to use
+* To convert a struct into json:
 ```golang
 myConvertedJson := quickson.Marshal(MyInterface)
 ```
+* To parse JSON into a struct
+```golang
+data := myStruct{}
+quickson.Unmarshal(json, &data)
+```
+* To parse JSON into a map/slice/string/bool/int
+```golang
+data := quickson.Unmarshal(json, false)
+```
+
 ## When not to use it?
 * If you have really complexe interfaces because it might be buggy with some conversions.
 
