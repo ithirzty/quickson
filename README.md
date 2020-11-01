@@ -1,4 +1,4 @@
-# Quickson is a JSON marshaller/unmarshaller for the Go lang.
+# Quickson : Fast JSON Marshaller/Unmarshaller for golang. [![License](https://img.shields.io/badge/License-Apache--2.0-green)](https://github.com/ithirzty/quickson/blob/main/LICENSE)
 ![logo](https://github.com/ithirzty/quickson/blob/main/logo.png?raw=true)
 ##### What is a marshaller? Unmarshaller?
 Marshal signifies parse. Unmarshal signifies parse but the other way (stringify)
@@ -11,7 +11,7 @@ go get github.com/ithirzty/quickson
 Then, in your `main.go` import the following
 ```golang
 import(
-"github.com/ithirzty/quickson"
+	"github.com/ithirzty/quickson"
 )
 ```
 ### How to update
@@ -24,22 +24,22 @@ go get -u github.com/ithirzty/quickson
 * It is really easy to use.
 
 # How to use
-* To convert a struct into json:
+* Converting a struct into JSON :
 ```golang
 myConvertedJson := quickson.Marshal(MyInterface)
 ```
-* To parse JSON into a struct
+* Parsing JSON into a struct : 
 ```golang
 data := myStruct{}
 quickson.Unmarshal(json, &data)
 ```
-* To parse JSON into a map/slice/string/bool/int
+* Paring JSON into a map/slice/string/bool/int
 ```golang
 data := quickson.Unmarshal(json, false)
 ```
 
-## When not to use it?
-* If you have really complexe interfaces because it might be buggy with some conversions.
+## Cons
+* It is best you don't use this tool if you need to marshal complex interfaces, Quickson is not yet capable of converting big interfaces.
 
 ## Less performance under load?
 Here is how to use concurrency with quickson:
@@ -53,21 +53,24 @@ result <- c
 ```
 
 
-## I just want to test it
-Then install the package and run the following:
+## How can I test it?
+Follow the installation guide run the following code:
 ```golang
 package main
+
 import(
-"fmt"
-"github.com/ithirzty/quickson"
+	"fmt"
+	"github.com/ithirzty/quickson"
 )
+
 type testInterface struct {
   TestField  string           //"This is a test."
   TestPassed map[string]bool  //"My test": true
 }
+
 func main() {
-testVar := testInterface{"This is a test.", map[string]bool{"My test": true}}
-fmt.Printf("This is our struct converted in JSON: %v", quickson.Marshal(testVar))
-//should output {"TestField":"This is a test.","TestPassed":{"My test":true}}
+	testVar := testInterface{"This is a test.", map[string]bool{"My test": true}}
+	fmt.Printf("This is our struct converted in JSON: %v", quickson.Marshal(testVar))
+	//should output {"TestField":"This is a test.","TestPassed":{"My test":true}}
 }
 ```
