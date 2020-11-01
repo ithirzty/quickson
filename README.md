@@ -4,7 +4,7 @@
 </p>
 
 ##### What is a marshaller? Unmarshaller?
-Marshal signifies parse. Unmarshal signifies parse but the other way (stringify)
+Marshal signifies stringify. Unmarshal signifies parse.
 
 ## Installing
 Go in your project directory, open a terminal and type the following
