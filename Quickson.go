@@ -9,14 +9,6 @@ import (
 
 //Marshal is used to convert a struct/interface into JSON. It outputs a string
 func Marshal(x interface{}) string {
-	c := make(chan string)
-	go func() {
-		c <- marshalWorker(x)
-	}()
-	return <-c
-}
-
-func marshalWorker(x interface{}) string {
 	v := reflect.ValueOf(x)
 	vi := reflect.Indirect(v)
 	var t string = ""
@@ -212,7 +204,7 @@ func getMap(t string, x interface{}, isFirst bool) (interface{}, string) {
 
 				a, b := getSlice(string(memory))
 				memory = memory[len(b):]
-				for i := 0; true; i++ {
+				for i := 0; i < len(memory); i++ {
 					if memory[i] == ',' {
 						if memory[i+1] == ' ' {
 							for ia := i + 1; true; i++ {
@@ -268,7 +260,7 @@ func getMap(t string, x interface{}, isFirst bool) (interface{}, string) {
 			} else if memory[0] == '[' {
 				a, b := getSlice(string(memory))
 				memory = memory[len(b):]
-				for i := 0; true; i++ {
+				for i := 0; i < len(memory); i++ {
 					if memory[i] == ',' {
 						if memory[i+1] == ' ' {
 							for ia := i + 1; true; i++ {
@@ -298,14 +290,18 @@ func getMap(t string, x interface{}, isFirst bool) (interface{}, string) {
 				tmpValue = a
 			}
 			if isMade == false {
-				mapType = reflect.MapOf(reflect.TypeOf(tmpKey), reflect.TypeOf(tmpValue))
-				mapValue = reflect.MakeMap(mapType)
-				isMade = true
+				if isFirst == false {
+					mapType = reflect.MapOf(reflect.TypeOf(tmpKey), reflect.TypeOf(tmpValue))
+					mapValue = reflect.MakeMap(mapType)
+					isMade = true
+				}
 			}
 			if isFirst {
 				reflect.Indirect(reflect.ValueOf(&x)).Elem().Elem().FieldByName(tmpKey.(string)).Set(reflect.ValueOf(tmpValue))
 			}
-			mapValue.SetMapIndex(reflect.ValueOf(tmpKey), reflect.ValueOf(tmpValue))
+			if x == false {
+				mapValue.SetMapIndex(reflect.ValueOf(tmpKey), reflect.ValueOf(tmpValue))
+			}
 			isKey = true
 			Nmemory := strings.TrimPrefix(string(memory), ",")
 			Nmemory = strings.TrimPrefix(Nmemory, " ")
@@ -315,7 +311,11 @@ func getMap(t string, x interface{}, isFirst bool) (interface{}, string) {
 			break
 		}
 	}
-	return mapValue.Interface(), t[:maxI]
+	var returnMap interface{}
+	if x == false {
+		returnMap = mapValue.Interface()
+	}
+	return returnMap, t[:maxI]
 }
 
 func getSlice(t string) (interface{}, string) {
