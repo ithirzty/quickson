@@ -1,4 +1,4 @@
-# Quickson : Fast JSON Marshaller/Unmarshaller for golang. [![License](https://img.shields.io/badge/License-Apache--2.0-green)](https://github.com/ithirzty/quickson/blob/main/LICENSE)
+# Quickson: Fast JSON Marshaller/Unmarshaller for golang. [![License](https://img.shields.io/badge/License-Apache--2.0-green)](https://github.com/ithirzty/quickson/blob/main/LICENSE)
 ![logo](https://github.com/ithirzty/quickson/blob/main/logo.png?raw=true)
 ##### What is a marshaller? Unmarshaller?
 Marshal signifies parse. Unmarshal signifies parse but the other way (stringify)
@@ -24,11 +24,11 @@ go get -u github.com/ithirzty/quickson
 * It is really easy to use.
 
 # How to use
-* Converting a struct into JSON :
+* Converting a struct into JSON:
 ```golang
 myConvertedJson := quickson.Marshal(MyInterface)
 ```
-* Parsing JSON into a struct : 
+* Parsing JSON into a struct: 
 ```golang
 data := myStruct{}
 quickson.Unmarshal(json, &data)
