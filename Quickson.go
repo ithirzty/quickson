@@ -8,6 +8,9 @@ import (
 )
 
 //Marshal is used to convert a struct/interface into JSON. It outputs a string
+//Usage: jsonText := quickson.Marshal(myInterface)
+//Where the interface can be anything like a struct, map, int, slice....
+//The result will be inline JSON with no indentation
 func Marshal(x interface{}) string {
 	v := reflect.ValueOf(x)
 	vi := reflect.Indirect(v)
@@ -121,6 +124,8 @@ func marshalDeep(vi reflect.Value, bytedType string) string {
 //-It can parse JSON to a struct with a pointer Unmarshal(json, &myinterface)
 //-Extract data to a map/slice/string/bool/int myMap := Unmarshal(json, false)
 func Unmarshal(t string, i interface{}) interface{} {
+	t = strings.Trim(t, " ")
+	t = strings.Trim(t, "\n")
 	if t[0] == '{' {
 		a, _ := getMap(t, i, true)
 		return a
@@ -180,23 +185,17 @@ func getMap(t string, x interface{}, isFirst bool) (interface{}, string) {
 	isKey := true
 	memory = memory[1:]
 	for true {
+		for memory[0] == ' ' || memory[0] == '\n' {
+			memory = memory[1:]
+		}
 		if isKey == true {
 			if memory[0] == '{' {
 				a, b := getMap(string(memory), "", false)
 				memory = memory[len(b):]
 				for i := 0; true; i++ {
 					if memory[i] == ':' {
-						if memory[i+1] == ' ' {
-							for ia := i + 1; true; i++ {
-								if memory[ia] != ' ' {
-									memory = memory[:len(memory)-ia-1]
-									break
-								}
-							}
-						} else {
-							memory = memory[:len(memory)-i]
-							break
-						}
+						memory = memory[:len(memory)-i]
+						break
 					}
 				}
 				tmpKey = a
@@ -206,17 +205,8 @@ func getMap(t string, x interface{}, isFirst bool) (interface{}, string) {
 				memory = memory[len(b):]
 				for i := 0; i < len(memory); i++ {
 					if memory[i] == ',' {
-						if memory[i+1] == ' ' {
-							for ia := i + 1; true; i++ {
-								if memory[ia] != ' ' {
-									memory = memory[:len(memory)-ia-1]
-									break
-								}
-							}
-						} else {
-							memory = memory[:len(memory)-i]
-							break
-						}
+						memory = memory[:len(memory)-i]
+						break
 					}
 				}
 				tmpKey = a
@@ -243,17 +233,8 @@ func getMap(t string, x interface{}, isFirst bool) (interface{}, string) {
 				memory = memory[len(b):]
 				for i := 0; true; i++ {
 					if memory[i] == ':' {
-						if memory[i+1] == ' ' {
-							for ia := i + 1; true; i++ {
-								if memory[ia] != ' ' {
-									memory = memory[:len(memory)-ia-1]
-									break
-								}
-							}
-						} else {
-							memory = memory[:len(memory)-i]
-							break
-						}
+						memory = memory[:len(memory)-i]
+						break
 					}
 				}
 				tmpValue = a
@@ -262,17 +243,8 @@ func getMap(t string, x interface{}, isFirst bool) (interface{}, string) {
 				memory = memory[len(b):]
 				for i := 0; i < len(memory); i++ {
 					if memory[i] == ',' {
-						if memory[i+1] == ' ' {
-							for ia := i + 1; true; i++ {
-								if memory[ia] != ' ' {
-									memory = memory[:len(memory)-ia-1]
-									break
-								}
-							}
-						} else {
-							memory = memory[:len(memory)-i]
-							break
-						}
+						memory = memory[:len(memory)-i]
+						break
 					}
 				}
 				tmpValue = a
@@ -365,6 +337,9 @@ func getSlice(t string) (interface{}, string) {
 	var sliceType reflect.Type
 	memory = memory[1:]
 	for true {
+		for memory[0] == ' ' || memory[0] == '\n' {
+			memory = memory[1:]
+		}
 		if memory[0] == '{' {
 			a, b := getMap(string(memory), "", false)
 			if len(memory)-len(b) < 0 {
@@ -374,17 +349,8 @@ func getSlice(t string) (interface{}, string) {
 			}
 			for i := 0; true; i++ {
 				if memory[i] == ':' {
-					if memory[i+1] == ' ' {
-						for ia := i + 1; true; i++ {
-							if memory[ia] != ' ' {
-								memory = memory[:len(memory)-ia-1]
-								break
-							}
-						}
-					} else {
-						memory = memory[:len(memory)-i]
-						break
-					}
+					memory = memory[:len(memory)-i]
+					break
 				}
 			}
 			tmpValue = a
@@ -397,17 +363,8 @@ func getSlice(t string) (interface{}, string) {
 			}
 			for i := 0; true; i++ {
 				if memory[i] == ',' {
-					if memory[i+1] == ' ' {
-						for ia := i + 1; true; i++ {
-							if memory[ia] != ' ' {
-								memory = memory[:len(memory)-ia-1]
-								break
-							}
-						}
-					} else {
-						memory = memory[:len(memory)-i]
-						break
-					}
+					memory = memory[:len(memory)-i]
+					break
 				}
 			}
 			tmpValue = a
