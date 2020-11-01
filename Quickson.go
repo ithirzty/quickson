@@ -290,13 +290,22 @@ func getMap(t string, x interface{}, isFirst bool) (interface{}, string) {
 				tmpValue = a
 			}
 			if isMade == false {
-				if isFirst == false {
+				if x == false {
 					mapType = reflect.MapOf(reflect.TypeOf(tmpKey), reflect.TypeOf(tmpValue))
 					mapValue = reflect.MakeMap(mapType)
 					isMade = true
 				}
 			}
 			if isFirst {
+				if reflect.ValueOf(tmpValue).Type().String() == "[]int" && reflect.Indirect(reflect.ValueOf(&x)).Elem().Elem().FieldByName(tmpKey.(string)).Type().String() == "[]uint8" {
+					vi := reflect.ValueOf(tmpValue)
+					var newTmpValue []uint8
+					for ia := 0; ia < reflect.ValueOf(vi.Interface()).Len(); ia++ {
+						iV, _ := strconv.Atoi(fmt.Sprint(reflect.ValueOf(vi.Interface()).Index(ia).Interface()))
+						newTmpValue = append(newTmpValue, uint8(iV))
+					}
+					tmpValue = newTmpValue
+				}
 				reflect.Indirect(reflect.ValueOf(&x)).Elem().Elem().FieldByName(tmpKey.(string)).Set(reflect.ValueOf(tmpValue))
 			}
 			if x == false {
