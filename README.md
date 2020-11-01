@@ -1,4 +1,5 @@
 # Quickson is a JSON marshaller/unmarshaller for the Go lang.
+![logo](https://github.com/ithirzty/quickson/blob/main/logo.png?raw=true)
 ##### What is a marshaller? Unmarshaller?
 Marshal signifies parse. Unmarshal signifies parse but the other way (stringify)
 
