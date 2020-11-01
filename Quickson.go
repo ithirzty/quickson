@@ -185,8 +185,15 @@ func getMap(t string, x interface{}, isFirst bool) (interface{}, string) {
 	isKey := true
 	memory = memory[1:]
 	for true {
-		for memory[0] == ' ' || memory[0] == '\n' {
-			memory = memory[1:]
+		for len(memory) > 0 {
+			if memory[0] == ' ' || memory[0] == '\n' || memory[0] == ',' {
+				memory = memory[1:]
+			} else {
+				break
+			}
+		}
+		if len(memory) == 0 {
+			break
 		}
 		if isKey == true {
 			if memory[0] == '{' {
@@ -261,14 +268,12 @@ func getMap(t string, x interface{}, isFirst bool) (interface{}, string) {
 				memory = memory[len(b):]
 				tmpValue = a
 			}
-			if isMade == false {
-				if x == false {
-					mapType = reflect.MapOf(reflect.TypeOf(tmpKey), reflect.TypeOf(tmpValue))
-					mapValue = reflect.MakeMap(mapType)
-					isMade = true
-				}
+			if isMade == false && x == false {
+				mapType = reflect.MapOf(reflect.TypeOf(tmpKey), reflect.TypeOf(tmpValue))
+				mapValue = reflect.MakeMap(mapType)
+				isMade = true
 			}
-			if isFirst {
+			if isFirst && x != false {
 				if reflect.ValueOf(tmpValue).Type().String() == "[]int" && reflect.Indirect(reflect.ValueOf(&x)).Elem().Elem().FieldByName(tmpKey.(string)).Type().String() == "[]uint8" {
 					vi := reflect.ValueOf(tmpValue)
 					var newTmpValue []uint8
@@ -281,12 +286,14 @@ func getMap(t string, x interface{}, isFirst bool) (interface{}, string) {
 				reflect.Indirect(reflect.ValueOf(&x)).Elem().Elem().FieldByName(tmpKey.(string)).Set(reflect.ValueOf(tmpValue))
 			}
 			if x == false {
-				mapValue.SetMapIndex(reflect.ValueOf(tmpKey), reflect.ValueOf(tmpValue))
+				go func() {
+					if "map["+reflect.TypeOf(tmpValue).String()+"]"+reflect.TypeOf(tmpValue).String() != mapType.String() {
+						panic("quickson: When exporting JSON to a map, every keys need to be the same type and evey values need to be the same type")
+					}
+				}()
+				go mapValue.SetMapIndex(reflect.ValueOf(tmpKey), reflect.ValueOf(tmpValue))
 			}
 			isKey = true
-			Nmemory := strings.TrimPrefix(string(memory), ",")
-			Nmemory = strings.TrimPrefix(Nmemory, " ")
-			memory = []rune(Nmemory)
 		}
 		if len(memory) == 0 {
 			break
@@ -337,8 +344,12 @@ func getSlice(t string) (interface{}, string) {
 	var sliceType reflect.Type
 	memory = memory[1:]
 	for true {
-		for memory[0] == ' ' || memory[0] == '\n' {
-			memory = memory[1:]
+		for len(memory) > 0 {
+			if memory[0] == ' ' || memory[0] == '\n' || memory[0] == ',' {
+				memory = memory[1:]
+			} else {
+				break
+			}
 		}
 		if memory[0] == '{' {
 			a, b := getMap(string(memory), "", false)
