@@ -31,13 +31,24 @@ func Marshal(x interface{}) string {
 					t += "\"" + vi.Type().Field(i).Name + "\":{"
 					mapTmpKeys := reflect.ValueOf(vi.Field(i).Interface()).MapKeys()
 					for _, key := range mapTmpKeys {
-						switch reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Type().String() {
-						case "int", "uint8", "bool":
-							t += "\"" + fmt.Sprint(key.Interface()) + "\":" + fmt.Sprint(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()) + ","
-						case "string":
-							t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + fmt.Sprint(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()) + "\","
-						default:
-							t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()), reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Type().String()) + ","
+						if key.Type().String() != "string" {
+							switch reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Type().String() {
+							case "int", "uint8", "bool":
+								t += fmt.Sprint(key.Interface()) + ":" + fmt.Sprint(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()) + ","
+							case "string":
+								t += fmt.Sprint(key.Interface()) + ":\"" + fmt.Sprint(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()) + "\","
+							default:
+								t += fmt.Sprint(key.Interface()) + ":\"" + marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()), reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Type().String()) + ","
+							}
+						} else {
+							switch reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Type().String() {
+							case "int", "uint8", "bool":
+								t += "\"" + fmt.Sprint(key.Interface()) + "\":" + fmt.Sprint(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()) + ","
+							case "string":
+								t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + fmt.Sprint(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()) + "\","
+							default:
+								t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Interface()), reflect.ValueOf(vi.Field(i).Interface()).MapIndex(key).Type().String()) + ","
+							}
 						}
 					}
 					t = t[:len(t)-1]
@@ -67,19 +78,6 @@ func Marshal(x interface{}) string {
 	return t
 }
 
-//to compare types efficiently
-
-func compareBytes(sa string, sb string) bool {
-	a := []byte(sa)
-	b := []byte(sb)
-	for i, v := range a {
-		if v != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
 //to iterate deeply in the interface, can take map and slices/array. Interfaces are redirected to Marshal
 
 func marshalDeep(vi reflect.Value, bytedType string) string {
@@ -89,13 +87,24 @@ func marshalDeep(vi reflect.Value, bytedType string) string {
 		t += "{"
 		mapTmpKeys := reflect.ValueOf(vi.Interface()).MapKeys()
 		for _, key := range mapTmpKeys {
-			switch reflect.ValueOf(vi.Interface()).MapIndex(key).Type().String() {
-			case "int", "uint8", "bool":
-				t += "\"" + fmt.Sprint(key.Interface()) + "\":" + fmt.Sprint(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()) + ","
-			case "string":
-				t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + fmt.Sprint(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()) + "\","
-			default:
-				t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()), reflect.ValueOf(vi.Interface()).MapIndex(key).Type().String()) + ","
+			if key.Type().String() != "string" {
+				switch reflect.ValueOf(vi.Interface()).MapIndex(key).Type().String() {
+				case "int", "uint8", "bool":
+					t += fmt.Sprint(key.Interface()) + ":" + fmt.Sprint(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()) + ","
+				case "string":
+					t += fmt.Sprint(key.Interface()) + ":\"" + fmt.Sprint(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()) + "\","
+				default:
+					t += fmt.Sprint(key.Interface()) + ":\"" + marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()), reflect.ValueOf(vi.Interface()).MapIndex(key).Type().String()) + ","
+				}
+			} else {
+				switch reflect.ValueOf(vi.Interface()).MapIndex(key).Type().String() {
+				case "int", "uint8", "bool":
+					t += "\"" + fmt.Sprint(key.Interface()) + "\":" + fmt.Sprint(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()) + ","
+				case "string":
+					t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + fmt.Sprint(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()) + "\","
+				default:
+					t += "\"" + fmt.Sprint(key.Interface()) + "\":\"" + marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Interface()).MapIndex(key).Interface()), reflect.ValueOf(vi.Interface()).MapIndex(key).Type().String()) + ","
+				}
 			}
 		}
 		t = t[:len(t)-1]
@@ -118,6 +127,19 @@ func marshalDeep(vi reflect.Value, bytedType string) string {
 		t += Marshal(vi.Interface())
 	}
 	return t
+}
+
+//to compare types efficiently
+
+func compareBytes(sa string, sb string) bool {
+	a := []byte(sa)
+	b := []byte(sb)
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
 }
 
 //Unmarshal has two purposes:
@@ -197,7 +219,7 @@ func getMap(t string, x interface{}, isFirst bool) (interface{}, string) {
 		}
 		if isKey == true {
 			if memory[0] == '{' {
-				a, b := getMap(string(memory), "", false)
+				a, b := getMap(string(memory), false, false)
 				memory = memory[len(b):]
 				for i := 0; true; i++ {
 					if memory[i] == ':' {
@@ -287,11 +309,11 @@ func getMap(t string, x interface{}, isFirst bool) (interface{}, string) {
 			}
 			if x == false {
 				go func() {
-					if "map["+reflect.TypeOf(tmpValue).String()+"]"+reflect.TypeOf(tmpValue).String() != mapType.String() {
-						panic("quickson: When exporting JSON to a map, every keys need to be the same type and evey values need to be the same type")
+					if "map["+reflect.TypeOf(tmpKey).String()+"]"+reflect.TypeOf(tmpValue).String() != mapType.String() {
+						panic("quickson: When exporting JSON to a map, every keys need to be the same type and evey values need to be the same type\n" + "map[" + reflect.TypeOf(tmpValue).String() + "]" + reflect.TypeOf(tmpValue).String() + " != " + mapType.String())
 					}
 				}()
-				go mapValue.SetMapIndex(reflect.ValueOf(tmpKey), reflect.ValueOf(tmpValue))
+				mapValue.SetMapIndex(reflect.ValueOf(tmpKey), reflect.ValueOf(tmpValue))
 			}
 			isKey = true
 		}
@@ -352,16 +374,18 @@ func getSlice(t string) (interface{}, string) {
 			}
 		}
 		if memory[0] == '{' {
-			a, b := getMap(string(memory), "", false)
+			a, b := getMap(string(memory), false, false)
 			if len(memory)-len(b) < 0 {
 				break
 			} else {
 				memory = memory[len(b):]
 			}
-			for i := 0; true; i++ {
-				if memory[i] == ':' {
-					memory = memory[:len(memory)-i]
-					break
+			if len(memory) > 0 {
+				for i := 0; true; i++ {
+					if memory[i] == ',' {
+						memory = memory[:len(memory)-i]
+						break
+					}
 				}
 			}
 			tmpValue = a
