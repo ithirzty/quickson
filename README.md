@@ -1,4 +1,4 @@
-# Quickson is a JSON marshaler for the Go lang.
+# Quickson is a JSON marshaller/unmarshaller for the Go lang.
 ## Installing
 Go in your project directory, open a terminal and type the following
 ```bash
