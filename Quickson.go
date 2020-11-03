@@ -51,7 +51,9 @@ func Marshal(x interface{}) string {
 							}
 						}
 					}
-					t = t[:len(t)-1]
+					if len(mapTmpKeys) > 0 {
+						t = t[:len(t)-1]
+					}
 					t += "},"
 				} else if compareBytes(osi[:1], "[") {
 					t += "\"" + vi.Type().Field(i).Name + "\":["
@@ -65,14 +67,18 @@ func Marshal(x interface{}) string {
 							t += marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Interface()), reflect.ValueOf(vi.Field(i).Interface()).Index(ia).Type().String()) + ","
 						}
 					}
-					t = t[:len(t)-1]
+					if reflect.ValueOf(vi.Field(i).Interface()).Len() > 0 {
+						t = t[:len(t)-1]
+					}
 					t += "],"
 				} else {
 					t += Marshal(vi.Field(i).Interface())
 				}
 			}
 		}
-		t = t[:len(t)-1]
+		if vi.NumField() > 0 {
+			t = t[:len(t)-1]
+		}
 		t += "}"
 	}
 	return t
@@ -107,7 +113,9 @@ func marshalDeep(vi reflect.Value, bytedType string) string {
 				}
 			}
 		}
-		t = t[:len(t)-1]
+		if len(mapTmpKeys) > 0 {
+			t = t[:len(t)-1]
+		}
 		t += "}"
 	} else if compareBytes(bytedType[:1], "[") {
 		t += "["
@@ -121,7 +129,9 @@ func marshalDeep(vi reflect.Value, bytedType string) string {
 				t += marshalDeep(reflect.ValueOf(reflect.ValueOf(vi.Interface()).Index(ia).Interface()), reflect.ValueOf(vi.Interface()).Index(ia).Type().String()) + ","
 			}
 		}
-		t = t[:len(t)-1]
+		if reflect.ValueOf(vi.Interface()).Len() > 0 {
+			t = t[:len(t)-1]
+		}
 		t += "]"
 	} else {
 		t += Marshal(vi.Interface())
