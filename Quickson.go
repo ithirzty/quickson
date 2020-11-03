@@ -81,7 +81,8 @@ func Marshal(x interface{}) string {
 		}
 		t += "}"
 	}
-	return t
+	t = strings.Replace(t, "\r\n", "\\n", -1)
+	return strings.Replace(t, "\n", "\\n", -1)
 }
 
 //to iterate deeply in the interface, can take map and slices/array. Interfaces are redirected to Marshal
